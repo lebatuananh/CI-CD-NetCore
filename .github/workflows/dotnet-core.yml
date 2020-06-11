@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: CI/CD
-    runs-on: mramra
+    runs-on: self-hosted
     steps:
     - uses: action/checkout@v2
     - name: Build the Docker image
