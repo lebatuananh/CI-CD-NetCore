@@ -1,12 +1,42 @@
- version: 2.1
+version: 2.1
 
- orbs:
+orbs:
   win: circleci/windows@2.2.0
+  docker: circleci/docker@1.5.0
 
- jobs:
-   build:
-     executor: win/default     
-    
-     steps:
-       - checkout
-       - run: dotnet build
+jobs:
+  build-and-push:
+    environment:
+      DOCKER_IMAGE: lebatuananh/dotnetcicd
+      DOCKER_TAG: latest
+    executor: docker/docker
+    steps:
+      - setup_remote_docker
+      - checkout
+      - docker/check:
+          docker-username: DOCKER_USER
+          docker-password: DOCKER_PASSWORD
+      - docker/build:
+          image: $DOCKER_IMAGE
+          tag: $DOCKER_TAG
+      - docker/push:
+          digest-path: /tmp/digest.txt
+          image: $DOCKER_IMAGE
+          tag: $DOCKER_TAG
+      - run:
+          command: |
+            echo "Digest is: $(</tmp/digest.txt)"
+  build:
+    executor: win/default
+
+    steps:
+      - checkout
+      - run: dotnet build
+
+workflows:
+  my-pipeline:
+    jobs:
+      - build
+      - build-and-push:
+          requires:
+            - build
