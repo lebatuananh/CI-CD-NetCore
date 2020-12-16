@@ -20,6 +20,7 @@ jobs:
           image: $DOCKER_IMAGE
           tag: $DOCKER_TAG
       - docker/push:
+          path: /CICD/Dockerfile
           digest-path: /tmp/digest.txt
           image: $DOCKER_IMAGE
           tag: $DOCKER_TAG
