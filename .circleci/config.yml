@@ -5,6 +5,13 @@ orbs:
   docker: circleci/docker@1.5.0
 
 jobs:
+  build:
+    executor: win/default
+
+    steps:
+      - checkout
+      - run: dotnet build
+
   build-and-push:
     environment:
       DOCKER_IMAGE: lebatuananh/dotnetcicd
@@ -26,13 +33,14 @@ jobs:
       - run:
           command: |
             echo "Digest is: $(</tmp/digest.txt)"
-  build:
-    executor: win/default
-
+  deploy:
+    executor: docker/docker
     steps:
-      - checkout
-      - run: dotnet build
-
+      # Please add $SSH_KEY_FINGERPRINT, $DEPLOYED_USER@ and DEPLOYED_SERVER to project's environment
+      - add_ssh_keys:
+          fingerprints:
+            - $SSH_KEY_FINGERPRINT
+      - run: ssh -oStrictHostKeyChecking=no $DEPLOYED_USER@$DEPLOYED_SERVER './deploy.sh'
 workflows:
   my-pipeline:
     jobs:
@@ -40,3 +48,6 @@ workflows:
       - build-and-push:
           requires:
             - build
+      - deploy:
+          requires:
+            - build-and-push
